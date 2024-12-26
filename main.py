@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget, QSlider, QListWidget, QFileDialog
 from concurrent.futures import ThreadPoolExecutor
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PIL import Image
 import sys
 import os
@@ -69,6 +70,7 @@ def convert(input_path):
 
 app = QApplication(sys.argv)
 app.setStyle('Fusion')
+app.setWindowIcon(QIcon('icon.ico'))
 
 window = QWidget()
 window.setWindowTitle("Конвертер WEBP")
