@@ -71,7 +71,7 @@ func setOutput (filePath string, tmp bool) string {
 	ext := filepath.Ext(filePath)
 	fileName := strings.TrimSuffix(file, ext)
 	if !tmp {
-		result = "./conv/" + fileName + ".webp"
+		result = "./output/" + fileName + ".webp"
 		return result
 	}
 	result = "./tmp/" + fileName + ".webp"

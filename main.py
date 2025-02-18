@@ -82,7 +82,7 @@ def convert_temp(images_path):
 
 def convert(images_path):
     quality = slider.value()
-    folder_path = "./conv"
+    folder_path = "./output"
     program = "./converter.exe"
     args = [
         program,
