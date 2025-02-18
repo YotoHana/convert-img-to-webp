@@ -14,8 +14,6 @@ import (
 )
 
 var wg sync.WaitGroup
-var buf bytes.Buffer
-var OutputPath string
 
 func main() {
 	quality := flag.Int("q", 80, "quality of convertation image")
@@ -27,17 +25,20 @@ func main() {
 
 	for _, v := range imgs {
 		wg.Add(1)
-		go worker(v, *quality, *tmp, &wg)
+		go func(imgPath string) {
+			defer wg.Done()
+			worker(imgPath, *quality, *tmp)
+		}(v)
 	}
 
 	wg.Wait()
-	fmt.Fprintf(os.Stdout, "Convertation complete! %v", OutputPath)
+	fmt.Fprintf(os.Stdout, "Convertation complete!")
 	os.Exit(0)
 }
 
-func worker(filePath string, quality int, tmp bool, wg *sync.WaitGroup) {
-	defer wg.Done()
-	OutputPath := setOutput(filePath, tmp)
+func worker(filePath string, quality int, tmp bool) {
+	var buf bytes.Buffer
+	outputPath := setOutput(filePath, tmp)
 	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error with opening file: %v", err)
@@ -57,7 +58,7 @@ func worker(filePath string, quality int, tmp bool, wg *sync.WaitGroup) {
 		os.Exit(1)
 	}
 
-	err = os.WriteFile(OutputPath, buf.Bytes(), 0666)
+	err = os.WriteFile(outputPath, buf.Bytes(), 0666)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error with creating file: %v", err)
 		os.Exit(1)

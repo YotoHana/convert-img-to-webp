@@ -56,7 +56,7 @@ def convert_files():
 def convert_temp(images_path):
     quality = slider.value()
     folder_path = "./tmp"
-    program = "./converter.exe"
+    program = "./main"
     args = [
         program,
         f"-q={quality}",
@@ -82,7 +82,7 @@ def convert_temp(images_path):
 def convert(images_path):
     quality = slider.value()
     folder_path = "./conv"
-    program = "./converter.exe"
+    program = "./main"
     args = [
         program,
         f"-q={quality}",
@@ -95,7 +95,7 @@ def convert(images_path):
         text=True
     )
     if result.returncode == 0:
-        print("Временная конвертация успешна:")
+        print("Конвертация успешна:")
         print(result.stdout)
     else:
         print("Произошла ошибка:")
