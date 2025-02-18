@@ -2,17 +2,20 @@ package main
 
 import (
 	"bytes"
-	"strings"
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync"
+
 	"github.com/chai2010/webp"
 	"github.com/disintegration/imaging"
 )
 
 var wg sync.WaitGroup
 var buf bytes.Buffer
+var OutputPath string
 
 func main() {
 	quality := flag.Int("q", 80, "quality of convertation image")
@@ -28,14 +31,14 @@ func main() {
 	}
 
 	wg.Wait()
-	fmt.Fprint(os.Stdout, "Convertation complete!")
+	fmt.Fprintf(os.Stdout, "Convertation complete! %v", OutputPath)
 	os.Exit(0)
 }
 
-func worker(filepath string, quality int, tmp bool, wg *sync.WaitGroup) {
+func worker(filePath string, quality int, tmp bool, wg *sync.WaitGroup) {
 	defer wg.Done()
-	outputPath := setOutput(filepath, tmp)
-	file, err := os.Open(filepath)
+	OutputPath := setOutput(filePath, tmp)
+	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error with opening file: %v", err)
 		os.Exit(1)
@@ -54,21 +57,22 @@ func worker(filepath string, quality int, tmp bool, wg *sync.WaitGroup) {
 		os.Exit(1)
 	}
 
-	err = os.WriteFile(outputPath, buf.Bytes(), 0666)
+	err = os.WriteFile(OutputPath, buf.Bytes(), 0666)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error with creating file: %v", err)
 		os.Exit(1)
 	}
 }
 
-func setOutput (filepath string, tmp bool) string {
+func setOutput (filePath string, tmp bool) string {
 	var result string
-	file := strings.Split(filepath, ".")
-	file[1] = "webp"
+	file := filepath.Base(filePath)
+	ext := filepath.Ext(filePath)
+	fileName := strings.TrimSuffix(file, ext)
 	if !tmp {
-		result = "conv/" + file[0] + "." + file[1]
+		result = "./conv/" + fileName + ".webp"
 		return result
 	}
-	result = "tmp/" + file[0] + "." + file[1]
+	result = "./tmp/" + fileName + ".webp"
 	return result
 }

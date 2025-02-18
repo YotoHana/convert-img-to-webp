@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PIL import Image
+import subprocess
 import sys
 import os
 
@@ -25,8 +26,7 @@ def open_file_dialog():
             total_size += os.path.getsize(file)
         input_size_label.setText(f'Исходный размер: {total_size / (1024 * 1024):.2f} МB')
         total_size = 0
-        with ThreadPoolExecutor() as executor:
-            executor.map(convert_temp, file_list)
+        convert_temp(file_list)
         for file in temp_file_list:
             total_size += os.path.getsize(file)
         output_size_label.setText(f'Итоговый размер: {total_size / (1024 * 1024):.2f} МB')
@@ -49,24 +49,58 @@ def complete():
     clear_tmp()
 
 def convert_files():
-    with ThreadPoolExecutor() as executor:
-        executor.map(convert, file_list)
+    convert(file_list)
     complete()
     
 
-def convert_temp(input_path):
+def convert_temp(images_path):
     quality = slider.value()
-    img = Image.open(input_path)
-    output_path = './tmp/' + os.path.splitext(os.path.basename(input_path))[0] + '.webp'
-    img.save(output_path, 'WEBP', quality=quality)
-    temp_file_list.append(output_path)
+    folder_path = "./tmp"
+    program = "./converter.exe"
+    args = [
+        program,
+        f"-q={quality}",
+        f"-tmp={True}"
+    ] + images_path
+    result = subprocess.run(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    if result.returncode == 0:
+        print("Временная конвертация успешна:")
+        print(result.stdout)
+        items = os.listdir(folder_path)
+        for item in items:
+            temp_file_list.append("./tmp/" + item)
+    else:
+        print("Произошла ошибка:")
+        print(result.stderr)
 
 
-def convert(input_path):
+def convert(images_path):
     quality = slider.value()
-    img = Image.open(input_path)
-    output_path = './Output/' + os.path.splitext(os.path.basename(input_path))[0] + '.webp'
-    img.save(output_path, 'WEBP', quality=quality)
+    folder_path = "./conv"
+    program = "./converter.exe"
+    args = [
+        program,
+        f"-q={quality}",
+        f"-tmp={False}"
+    ] + images_path
+    result = subprocess.run(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    if result.returncode == 0:
+        print("Временная конвертация успешна:")
+        print(result.stdout)
+    else:
+        print("Произошла ошибка:")
+        print(result.stderr)
+    
 
 app = QApplication(sys.argv)
 app.setStyle('Fusion')
