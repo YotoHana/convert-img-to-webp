@@ -56,7 +56,7 @@ def convert_files():
 def convert_temp(images_path):
     quality = slider.value()
     folder_path = "./tmp"
-    program = "./main"
+    program = "./converter.exe"
     args = [
         program,
         f"-q={quality}",
@@ -66,6 +66,7 @@ def convert_temp(images_path):
         args,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        creationflags=subprocess.CREATE_NO_WINDOW,
         text=True
     )
     if result.returncode == 0:
@@ -82,7 +83,7 @@ def convert_temp(images_path):
 def convert(images_path):
     quality = slider.value()
     folder_path = "./conv"
-    program = "./main"
+    program = "./converter.exe"
     args = [
         program,
         f"-q={quality}",
@@ -92,6 +93,7 @@ def convert(images_path):
         args,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        creationflags=subprocess.CREATE_NO_WINDOW,
         text=True
     )
     if result.returncode == 0:
