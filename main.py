@@ -1,8 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget, QSlider, QListWidget, QFileDialog
-from concurrent.futures import ThreadPoolExecutor
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PIL import Image
 import subprocess
 import sys
 import os
@@ -12,6 +10,16 @@ temp_file_list = []
 
 def update_slider_lable(value):
     slider_label.setText("Качество: " + str(value))
+
+def update_level_slider_lable(value):
+    if value == 0:
+        level_slider_label.setText("Нагрузка: Низкая")
+    elif value == 1:
+        level_slider_label.setText("Нагрузка: Средняя")
+    elif value == 2:
+        level_slider_label.setText("Нагрузка: Высокая")
+    elif value == 3:
+        level_slider_label.setText("Нагрузка: Максимальная")
 
 def open_file_dialog():
     files, _ = QFileDialog.getOpenFileNames(None, 'Choose files', '', "Image files (*.jpg *.jpeg *.png *.heif *.heic *.jfif *.bmp *.tiff *.tif *.pjpeg *.pjp)")
@@ -55,12 +63,14 @@ def convert_files():
 
 def convert_temp(images_path):
     quality = slider.value()
+    perfomance = level_slider.value()
     folder_path = "./tmp"
     program = "./converter.exe"
     args = [
         program,
         f"-q={quality}",
-        f"-tmp={True}"
+        f"-tmp={True}",
+        f"-p={perfomance}"
     ] + images_path
     result = subprocess.run(
         args,
@@ -82,12 +92,14 @@ def convert_temp(images_path):
 
 def convert(images_path):
     quality = slider.value()
+    perfomance = level_slider.value()
     folder_path = "./output"
     program = "./converter.exe"
     args = [
         program,
         f"-q={quality}",
-        f"-tmp={False}"
+        f"-tmp={False}",
+        f"-p={perfomance}"
     ] + images_path
     result = subprocess.run(
         args,
@@ -123,6 +135,16 @@ main_layout.addWidget(slider)
 slider_label = QLabel("Качество: 80")
 main_layout.addWidget(slider_label)
 slider.valueChanged.connect(update_slider_lable)
+
+level_slider = QSlider(Qt.Orientation.Horizontal)
+level_slider.setMinimum(0)
+level_slider.setMaximum(3)
+level_slider.setValue(3)
+main_layout.addWidget(level_slider)
+
+level_slider_label = QLabel("Нагрузка: Максимальная")
+main_layout.addWidget(level_slider_label)
+level_slider.valueChanged.connect(update_level_slider_lable)
 
 fileDialog = QListWidget()
 main_layout.addWidget(fileDialog)

@@ -8,31 +8,56 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/chai2010/webp"
 	"github.com/disintegration/imaging"
 )
 
 var wg sync.WaitGroup
+var maxWorkers int
 
 func main() {
+	timeStart := time.Now()
+
 	quality := flag.Int("q", 80, "quality of convertation image")
+	perf := flag.Int("p", 1, "level of performance (0 - low, 1 - medium, 2 - high, 3 - max)")
 	tmp := flag.Bool("tmp", false, "saving on temp dir")
 	flag.Parse()
 	imgs := flag.Args()
-	fmt.Println(imgs)
-	fmt.Println(*quality)
+	fmt.Printf("Images paths: %v\n",imgs)
+	fmt.Printf("Level of quality: %v\n",*quality)
+	fmt.Printf("Level of performance: %v\n", *perf)
 
-	for _, v := range imgs {
+	if *perf == 0 {
+		maxWorkers = 2
+	} else if *perf == 1 {
+		maxWorkers = 4
+	} else if *perf == 2 {
+		maxWorkers = 6
+	} else {
+		maxWorkers = 10
+	}
+
+	workers := make(chan struct{}, maxWorkers)
+
+
+	for i, v := range imgs {
 		wg.Add(1)
-		go func(imgPath string) {
+		go func(id int, imgPath string) {
 			defer wg.Done()
+			workers <- struct{}{}
 			worker(imgPath, *quality, *tmp)
-		}(v)
+			fmt.Fprintf(os.Stdout, "PROGRESS: %v", id)
+			<- workers
+		}(i, v)
 	}
 
 	wg.Wait()
 	fmt.Fprintf(os.Stdout, "Convertation complete!")
+	timeEnd := time.Now()
+	timeDuration := timeEnd.Sub(timeStart)
+	fmt.Println("Время выполнения: ", timeDuration)
 	os.Exit(0)
 }
 
