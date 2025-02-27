@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget, QSlider, QListWidget, QFileDialog
+from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget, QSlider, QListWidget, QFileDialog, QProgressBar
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 import subprocess
@@ -72,13 +72,15 @@ def convert_temp(images_path):
         f"-tmp={True}",
         f"-p={perfomance}"
     ] + images_path
-    result = subprocess.run(
+    result = subprocess.Popen(
         args,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        creationflags=subprocess.CREATE_NO_WINDOW,
         text=True
     )
+
+
+
     if result.returncode == 0:
         print("Временная конвертация успешна:")
         print(result.stdout)
@@ -91,6 +93,7 @@ def convert_temp(images_path):
 
 
 def convert(images_path):
+    progress_bar.setVisible(True)
     quality = slider.value()
     perfomance = level_slider.value()
     folder_path = "./output"
@@ -101,13 +104,28 @@ def convert(images_path):
         f"-tmp={False}",
         f"-p={perfomance}"
     ] + images_path
-    result = subprocess.run(
+    result = subprocess.Popen(
         args,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        creationflags=subprocess.CREATE_NO_WINDOW,
         text=True
     )
+
+    total_files = len(images_path)
+    print("Всего файлов:" + str(total_files))
+    progress_bar.setMaximum(total_files)
+
+    for line in result.stdout:
+        line = line.strip()
+        if line.startswith("PROGRESS:"):
+            current_progress = int(line.split(":")[1])
+            progress_bar.setValue(current_progress)
+        elif line == "DONE":
+            progress_bar.setVisible(False)
+            complete_label.setVisible(True)
+            print("Конвертация завершена")
+            break
+
     if result.returncode == 0:
         print("Конвертация успешна:")
         print(result.stdout)
@@ -154,6 +172,13 @@ main_layout.addWidget(input_size_label)
 
 output_size_label = QLabel("Итоговый размер: 0 МB")
 main_layout.addWidget(output_size_label)
+
+progress_bar = QProgressBar()
+main_layout.addWidget(progress_bar)
+progress_bar.setVisible(False)
+
+complete_label = QLabel("Конвертация успешна!")
+complete_label.setVisible(False)
 
 file_button = QPushButton("Выбрать файлы...")
 file_button.clicked.connect(open_file_dialog)
